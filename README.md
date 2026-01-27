@@ -58,13 +58,17 @@ declarative, reproducible Nix-based workflow.
 
 ```bash
 nix run github:dfee/lume-flake -- --help
+```
 
-Install into your profile
+### Install into your profile
 
+```bash
 nix profile install github:dfee/lume-flake
+```
 
-Use in a dev shell
+### Use in a dev shell
 
+```bash
 nix develop github:dfee/lume-flake
 lume --version
 ```
@@ -111,13 +115,14 @@ Logs (matching upstream behavior):
 
 ## Design notes
 
- *  This flake does not implement:
- *  auto-updating
- *  cron jobs
- *  background services by default
- *  Those behaviors are intentionally excluded in favor of explicit configuration.
- *  Packaging is currently binary-based (official release artifacts).
+This flake does not implement:
+- auto-updating
+- cron jobs
+- background services by default
 
+Those behaviors are intentionally excluded in favor of explicit configuration.
+
+Packaging is currently binary-based (official release artifacts).
 A future nixpkgs submission would likely require a source build.
 
 ---

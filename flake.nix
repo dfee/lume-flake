@@ -21,9 +21,7 @@
             pname = "lume";
             inherit version;
 
-            # The installer pulls: https://github.com/trycua/cua/releases/download/<tag>/lume.tar.gz   [oai_citation:3‡GitHub](https://raw.githubusercontent.com/trycua/cua/main/libs/lume/scripts/install.sh)
             src = pkgs.fetchurl {
-              # Tags look like lume-vX.Y.Z (script matches "lume-...")  [oai_citation:4‡GitHub](https://raw.githubusercontent.com/trycua/cua/main/libs/lume/scripts/install.sh)
               url = "https://github.com/trycua/cua/releases/download/lume-v${version}/lume.tar.gz";
               sha256 = "sha256-wfFAAiHpa+XFixgIjbTYqdpGxOJHG7bbB4VYYO9ILXk=";
             };
@@ -37,7 +35,7 @@
               tar -xzf $src -C ./
               install -m755 lume $out/bin/lume
 
-              # Optional resource bundle (the script installs it if present)  [oai_citation:5‡GitHub](https://raw.githubusercontent.com/trycua/cua/main/libs/lume/scripts/install.sh)
+              # Optional resource bundle
               if [ -d ./lume_lume.bundle ]; then
                 mkdir -p $out/share/lume
                 cp -R ./lume_lume.bundle $out/share/lume/
@@ -49,8 +47,8 @@
             meta = with pkgs.lib; {
               description = "Lume: macOS VM CLI and server (trycua)";
               homepage = "https://cua.ai/docs/lume/";
-              license = licenses.mit; # verify if they state otherwise; script itself doesn't declare it
-              platforms = [ "aarch64-darwin" ]; # script hard-rejects non-darwin and non-arm64  [oai_citation:6‡GitHub](https://raw.githubusercontent.com/trycua/cua/main/libs/lume/scripts/install.sh)
+              license = licenses.mit;
+              platforms = [ "aarch64-darwin" ];
               mainProgram = "lume";
             };
           };
@@ -65,7 +63,14 @@
         };
       });
 
-      # nix-darwin module to recreate the LaunchAgent part of the installer  [oai_citation:7‡GitHub](https://raw.githubusercontent.com/trycua/cua/main/libs/lume/scripts/install.sh)
+      # Dev shell with lume available
+      devShells = eachSystem (system: {
+        default = (mkPkgs system).mkShell {
+          packages = [ self.packages.${system}.default ];
+        };
+      });
+
+      # nix-darwin module for the LaunchAgent
       darwinModules.lume =
         {
           config,
@@ -87,14 +92,13 @@
 
             port = lib.mkOption {
               type = lib.types.port;
-              default = 7777; # installer default  [oai_citation:8‡GitHub](https://raw.githubusercontent.com/trycua/cua/main/libs/lume/scripts/install.sh)
+              default = 7777;
             };
           };
 
           config = lib.mkIf cfg.enable {
             environment.systemPackages = [ cfg.package ];
 
-            # Mirrors the intent of their LaunchAgent: RunAtLoad + KeepAlive + logs  [oai_citation:9‡GitHub](https://raw.githubusercontent.com/trycua/cua/main/libs/lume/scripts/install.sh)
             launchd.user.agents.lume-daemon = {
               serviceConfig = {
                 Label = "com.trycua.lume_daemon";
