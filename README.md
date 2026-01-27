@@ -73,16 +73,47 @@ nix develop github:dfee/lume-flake
 lume --version
 ```
 
-### Using as a flake input (local development)
+### Using as a flake input
+
+Add to your `flake.nix`:
+
+```nix
+inputs = {
+  lume.url = "github:dfee/lume-flake";
+};
+```
+
+Your `flake.lock` will pin the exact commit used.
+
+#### Updating to a new version
+
+When lume-flake is updated, pull in the changes with:
+
+```bash
+nix flake update lume
+```
+
+Then rebuild your system (`darwin-rebuild switch`, etc.).
+
+#### Pinning to a specific commit
+
+If you need a specific version:
+
+```nix
+inputs = {
+  lume.url = "github:dfee/lume-flake/<commit-sha>";
+};
+```
+
+#### Local development
+
+For iterating locally:
 
 ```nix
 inputs = {
   lume.url = "path:../lume-flake";
 };
 ```
-
-Relative paths are supported and recommended for local iteration.
-
 
 ### nix-darwin integration (optional)
 
