@@ -1,27 +1,26 @@
 # lume-flake
 
-> ⚠️ **Experimental / Transitional Packaging**
+> **Source Build with Path to nixpkgs**
 >
-> This flake is an unofficial, experimental packaging of Lume for Nix-based
-> macOS systems.
+> This flake builds Lume from source using your system's Xcode Swift toolchain.
+> It is structured to be convertible to a pure nixpkgs package once Swift 6
+> becomes available in nixpkgs.
 >
-> It exists to fill a gap until Lume is packaged and maintained in the
-> official `nixpkgs` repository (ideally as a source-based derivation).
+> Current limitations for nixpkgs submission:
+> - Requires system Xcode (Swift 6+) — nixpkgs only has Swift 5.10
+> - Uses `--impure` flag for build
 >
-> Expect possible breaking changes, limited guarantees around long-term
-> maintenance, and eventual deprecation in favor of an upstream-supported
-> nixpkgs package.
->
-> If and when an official nixpkgs implementation becomes available, users
-> should prefer that over this flake.
+> When Swift 6 lands in nixpkgs, this package can be made fully pure and
+> submitted upstream.
 
 A Nix flake packaging **Lume**, the macOS VM CLI from trycua, with an optional
 nix-darwin LaunchAgent module.
 
-This flake exists to replace the upstream imperative install script with a
-declarative, reproducible Nix-based workflow.
+This flake builds Lume from source code rather than downloading pre-built
+binaries, providing better auditability and a clear path to nixpkgs inclusion.
 
-- No installer scripts
+- Builds from source (Swift)
+- All 17 Swift dependencies pinned with hashes
 - No mutable state during install
 - No auto-updaters
 - Optional background service, expressed declaratively
@@ -30,13 +29,20 @@ declarative, reproducible Nix-based workflow.
 
 ## What this provides
 
-### 1. A Nix package
+### 1. Source-built Nix package (default)
 
-- Installs the `lume` CLI from official GitHub releases
+- Builds `lume` from the official trycua/cua repository
+- Requires Xcode with Swift 6+ on the build machine
 - Darwin-only (`aarch64-darwin`, Apple Silicon)
-- No side effects
+- Must be built with `--impure` flag
 
-### 2. A nix-darwin module (optional)
+### 2. Binary package (fallback)
+
+- Installs from official GitHub release artifacts
+- No Xcode required
+- Use with `.#binary`
+
+### 3. A nix-darwin module (optional)
 
 - Recreates the upstream `lume serve` LaunchAgent
 - Declarative, idempotent, and removable
@@ -48,28 +54,51 @@ declarative, reproducible Nix-based workflow.
 
 - macOS on Apple Silicon (M1/M2/M3/M4)
 - Nix with flakes enabled
+- **Xcode 15+ with Swift 6+** (for source build)
 - Optional: nix-darwin (for the LaunchAgent)
 
 ---
 
 ## Usage
 
+### Build from source (requires Xcode)
+
+```bash
+nix build github:dfee/lume-flake --impure
+./result/bin/lume --version
+```
+
+### Use pre-built binary (no Xcode needed)
+
+```bash
+nix build github:dfee/lume-flake#binary
+./result/bin/lume --version
+```
+
 ### Run without installing
 
 ```bash
-nix run github:dfee/lume-flake -- --help
+# Source build
+nix run github:dfee/lume-flake --impure -- --help
+
+# Binary
+nix run github:dfee/lume-flake#binary -- --help
 ```
 
 ### Install into your profile
 
 ```bash
-nix profile install github:dfee/lume-flake
+# Source build
+nix profile install github:dfee/lume-flake --impure
+
+# Binary
+nix profile install github:dfee/lume-flake#binary
 ```
 
 ### Use in a dev shell
 
 ```bash
-nix develop github:dfee/lume-flake
+nix develop github:dfee/lume-flake --impure
 lume --version
 ```
 
@@ -127,6 +156,7 @@ inputs = {
     enable = true;
     port = 7777;
     # package = inputs.lume.packages.${pkgs.system}.default; # optional override
+    # package = inputs.lume.packages.${pkgs.system}.binary;  # use binary instead
   };
 }
 ```
@@ -134,7 +164,7 @@ inputs = {
 Apply with:
 
 ```
-darwin-rebuild switch --flake .#your-hostname
+darwin-rebuild switch --flake .#your-hostname --impure
 ```
 
 Logs (matching upstream behavior):
@@ -153,8 +183,23 @@ This flake does not implement:
 
 Those behaviors are intentionally excluded in favor of explicit configuration.
 
-Packaging is currently binary-based (official release artifacts).
-A future nixpkgs submission would likely require a source build.
+### Source build architecture
+
+The source build:
+1. Fetches the cua monorepo at a pinned revision
+2. Pre-fetches all 17 Swift package dependencies with pinned hashes
+3. Uses system Xcode's Swift toolchain to compile
+4. Produces a native ARM64 binary
+
+### Path to nixpkgs
+
+For full nixpkgs eligibility, the package needs:
+- [ ] Swift 6 in nixpkgs (currently only 5.10.1)
+- [ ] Pure build without system Xcode
+- [ ] Proper SwiftPM integration with swiftpm2nix
+
+Once Swift 6 is available in nixpkgs, this package can be converted to a
+pure derivation by replacing the system xcrun calls with nixpkgs Swift.
 
 ---
 
@@ -162,9 +207,9 @@ A future nixpkgs submission would likely require a source build.
 
 | Platform | Supported |
 | -------- | --------- |
-| aarch64-darwin | ✅ |
-| x86_64-darwin | ❌ |
-| Linux | ❌ |
+| aarch64-darwin | Source + Binary |
+| x86_64-darwin | Not supported |
+| Linux | Not supported |
 
 Upstream Lume relies on macOS Virtualization.framework and Apple Silicon.
 
@@ -173,12 +218,12 @@ Upstream Lume relies on macOS Virtualization.framework and Apple Silicon.
 ## License
 
 This flake is MIT-licensed.
-Lume itself is distributed under its upstream license.
+Lume itself is distributed under MIT license.
 
 ---
 
 ## Status
 
-This is a pragmatic packaging layer, not an official upstream artifact.
-It exists to make Lume usable in Nix-based macOS systems without violating
-Nix’s model of purity and reproducibility.
+This is a community packaging layer building Lume from source.
+It exists to make Lume usable in Nix-based macOS systems with full
+source auditability and a clear path to upstream nixpkgs inclusion.
