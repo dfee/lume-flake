@@ -14,7 +14,7 @@
         system:
         let
           pkgs = mkPkgs system;
-          version = "0.2.76"; # pin to a lume release version
+          version = "0.2.80"; # pin to a lume release version
         in
         {
           default = pkgs.stdenvNoCC.mkDerivation {
@@ -23,7 +23,7 @@
 
             src = pkgs.fetchurl {
               url = "https://github.com/trycua/cua/releases/download/lume-v${version}/lume.tar.gz";
-              sha256 = "sha256-4OdvaSF7TimwZIMG54Ev/F9G2iCCdNkxymHqqkKvjsM=";
+              sha256 = "sha256-42nAnurH6r4gw6t9YC0K2Vgl3ZuGrO6Z3WECtD7JDQQ=";
             };
 
             dontUnpack = true;
