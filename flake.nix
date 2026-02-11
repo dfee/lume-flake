@@ -10,8 +10,8 @@
       mkPkgs = system: import nixpkgs { inherit system; };
 
       # Lume version and source info
-      version = "0.2.76";
-      srcRev = "35eb0252aa4b9dc9f880b6574cc2b6463b073de3"; # lume-v0.2.76
+      version = "0.2.80";
+      srcRev = "dccbe1898ca6ab3d17e18476e5bebfdb33180f53"; # lume-v0.2.80
 
       # Swift package dependencies from Package.resolved
       # These are pre-fetched for reproducibility
@@ -113,7 +113,7 @@
           lumeSrc = pkgs.fetchgit {
             url = "https://github.com/trycua/cua.git";
             rev = srcRev;
-            hash = "sha256-TH3SXETgBu+zgJsB0jr8ykAWV5SDyCkje89I+jTyvFI=";
+            hash = "sha256-tRRek7c0ZkP0XiuUtyMnh/b5GQphKIIzZ5YZVs0VAww=";
             fetchSubmodules = false;
           };
 
@@ -214,7 +214,7 @@
 
             src = pkgs.fetchurl {
               url = "https://github.com/trycua/cua/releases/download/lume-v${version}/lume.tar.gz";
-              sha256 = "sha256-4OdvaSF7TimwZIMG54Ev/F9G2iCCdNkxymHqqkKvjsM=";
+              sha256 = "sha256-42nAnurH6r4gw6t9YC0K2Vgl3ZuGrO6Z3WECtD7JDQQ=";
             };
 
             dontUnpack = true;
